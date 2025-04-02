@@ -27,6 +27,26 @@ impl StreamBuf {
     pub fn flip(&mut self) {
         self.mark = 0;
     }
+
+    pub fn peek_next(&self) -> Option<u8> {
+        self.get(self.mark)
+    }
+
+    pub fn write_next(&mut self, value: u8) {
+        self.set(self.mark, value);
+        self.mark += 1;
+    }
+
+    pub fn read_next(&mut self) -> Option<u8> {
+        self.mark += 1;
+        self.get(self.mark - 1)
+    }
+}
+
+impl Default for StreamBuf {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[cfg(test)]
@@ -42,5 +62,17 @@ mod tests {
         assert_eq!(buf.get(0), Some(5));
         assert_eq!(buf.get(1), Some(25));
         assert_eq!(buf.get(2), Some(125));
+    }
+
+    #[test]
+    pub fn buf_next() {
+        let mut buf = StreamBuf::new();
+        buf.write_next(5);
+        buf.write_next(25);
+        buf.write_next(125);
+        buf.flip();
+        assert_eq!(buf.read_next(), Some(5));
+        assert_eq!(buf.read_next(), Some(25));
+        assert_eq!(buf.read_next(), Some(125));
     }
 }
